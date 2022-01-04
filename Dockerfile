@@ -57,8 +57,8 @@ RUN	cmake ../opensim-core/dependencies/ \
       		-DCMAKE_INSTALL_PREFIX='~/opensim_dependencies_install' \
       		-DCMAKE_BUILD_TYPE=RelWithDebInfo && \ 
 	make -j12
-#RUN apt install 
-WORKDIR opensim_build
+RUN apt-get install python3-numpy python3-dev --yes
+WORKDIR /opensim_build
 
 #RUN 	mkdir opensim_build && \
 #	cd opensim_build && \
