@@ -69,15 +69,17 @@ RUN	cmake ../opensim-core/dependencies/ \
 
 WORKDIR /opensim_build
 
-#RUN 	mkdir opensim_build && \
-#	cd opensim_build && \
-#	cmake ../opensim-core \
-#	      -DCMAKE_INSTALL_PREFIX="~/opensim_install" \
-#	      -DCMAKE_BUILD_TYPE=RelWithDebInfo \
-#	      -DOPENSIM_DEPENDENCIES_DIR="~/opensim_dependencies_install" \
-#	      -DBUILD_PYTHON_WRAPPING=ON \
-#	      -DBUILD_JAVA_WRAPPING=ON \
-#	      -DWITH_BTK=ON && \
+ENV PATH=$PATH:/root/swig/bin/
+ENV SWIG_DIR=/root/swig/bin
+ENV SWIG_EXECUTABLE=/root/swig/bin/swig
+
+RUN 	cmake ../opensim-core \
+	      -DCMAKE_INSTALL_PREFIX="~/opensim_install" \
+	      -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+	      -DOPENSIM_DEPENDENCIES_DIR="~/opensim_dependencies_install" \
+	      -DBUILD_PYTHON_WRAPPING=ON \
+	      -DBUILD_JAVA_WRAPPING=ON \
+	      -DWITH_BTK=ON 
 #	make -j8 && \
 #	ctest -j8 && \
 #	make -j8 install 
