@@ -56,8 +56,10 @@ RUN 	rm -f /usr/bin/cc /usr/bin/c++ && \
 	ln -s /usr/bin/clang++-3.6 /usr/bin/c++
 
 
-ENV OPENSIM_REPO=https://github.com/opensim-org/opensim-core.git
-ENV OPENSIM_BRANCH=
+ENV OPENSIM_REPO=https://github.com/mitkof6/opensim-core.git
+#https://github.com/opensim-org/opensim-core.git
+ENV OPENSIM_BRANCH=bindings_timestepper
+#master
 RUN 	git clone -b $OPENSIM_BRANCH $OPENSIM_REPO
 WORKDIR	opensim_dependencies_build
 RUN	cmake ../opensim-core/dependencies/ \
