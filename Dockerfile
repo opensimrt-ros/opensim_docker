@@ -78,8 +78,12 @@ RUN 	cmake ../opensim-core \
 	      -DCMAKE_BUILD_TYPE=RelWithDebInfo \
 	      -DOPENSIM_DEPENDENCIES_DIR="~/opensim_dependencies_install" \
 	      -DBUILD_PYTHON_WRAPPING=ON \
-	      -DBUILD_JAVA_WRAPPING=ON \
-	      -DWITH_BTK=ON 
-#	make -j8 && \
+	      -DBUILD_JAVA_WRAPPING=OFF \
+	      -DWITH_BTK=ON  
+	      #no java?
+
+#RUN apt-get install libjpeg62-turbo tzdata-java initscripts libsctp1
+
+#RUN	make -j12
 #	ctest -j8 && \
 #	make -j8 install 
