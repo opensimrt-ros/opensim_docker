@@ -47,10 +47,10 @@ RUN 	rm -f /usr/bin/cc /usr/bin/c++ && \
 	ln -s /usr/bin/clang++-3.6 /usr/bin/c++
 
 ENV OPENSIM_INSTALL_DIR=/root/opensim_install
-ENV OPENSIM_REPO=https://github.com/mitkof6/opensim-core.git
-#https://github.com/opensim-org/opensim-core.git
-ENV OPENSIM_BRANCH=bindings_timestepper
-#master
+#ENV OPENSIM_REPO=https://github.com/mitkof6/opensim-core.git
+ENV OPENSIM_REPO=https://github.com/opensim-org/opensim-core.git
+#ENV OPENSIM_BRANCH=bindings_timestepper
+ENV OPENSIM_BRANCH=master
 RUN 	git clone -b $OPENSIM_BRANCH $OPENSIM_REPO
 WORKDIR	opensim_dependencies_build
 RUN	cmake ../opensim-core/dependencies/ \
@@ -60,7 +60,7 @@ RUN	cmake ../opensim-core/dependencies/ \
 
 WORKDIR /opensim_build
 
-ENV SWIG_VERSION=3.0.8
+ENV SWIG_VERSION=4.0.2
 RUN	wget http://ufpr.dl.sourceforge.net/project/swig/swig/swig-$SWIG_VERSION/swig-$SWIG_VERSION.tar.gz && \
 	tar xzf swig-$SWIG_VERSION.tar.gz && \
 	cd swig-$SWIG_VERSION/ && \
@@ -71,10 +71,10 @@ ENV SWIG_PATH=$HOME/swig/bin/swig
 ENV PATH=$PATH:/root/swig/bin/
 ENV SWIG_DIR=/root/swig/bin
 ENV SWIG_EXECUTABLE=/root/swig/bin/swig
-ENV DESTDIR=$OPENSIM_INSTALL_DIR
+#ENV DESTDIR=$OPENSIM_INSTALL_DIR #idk about this.
 
 RUN 	cmake ../opensim-core \
-	      -DCMAKE_INSTALL_PREFIX="" \
+	      -DCMAKE_INSTALL_PREFIX=$OPENSIM_INSTALL_DIR \
 	      -DCMAKE_BUILD_TYPE=RelWithDebInfo \
 	      -DOPENSIM_DEPENDENCIES_DIR="~/opensim_dependencies_install" \
 	      -DBUILD_PYTHON_WRAPPING=ON \
@@ -85,6 +85,9 @@ RUN 	cmake ../opensim-core \
 
 #RUN apt-get install libjpeg62-turbo tzdata-java initscripts libsctp1
 
+ENV PYTHONPATH=/root/opensim_install/lib/python3.6/site-packages/
+
 RUN	make -j12
 #	ctest -j8 && \
-#	make -j8 install 
+#	cd /root/opensim_install/lib/python3.6/site-packages/
+RUN 	make -j8 install 
