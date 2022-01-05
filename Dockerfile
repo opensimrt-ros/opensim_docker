@@ -56,7 +56,7 @@ WORKDIR	opensim_dependencies_build
 RUN	cmake ../opensim-core/dependencies/ \
       		-DCMAKE_INSTALL_PREFIX='~/opensim_dependencies_install' \
       		-DCMAKE_BUILD_TYPE=RelWithDebInfo && \ 
-	make -j12
+	make -j12 
 
 WORKDIR /opensim_build
 
@@ -80,13 +80,33 @@ RUN 	cmake ../opensim-core \
 	      -DBUILD_PYTHON_WRAPPING=ON \
 	      -DOPENSIM_PYTHON_VERSION=3 \
 	      -DBUILD_JAVA_WRAPPING=OFF \
-	      -DWITH_BTK=ON  
+	      -DWITH_BTK=ON \
+	      -DOPENSIM_WITH_TROPTER=OFF
 	      #no java?
 
 #RUN apt-get install libjpeg62-turbo tzdata-java initscripts libsctp1
 
 ENV PYTHONPATH=/root/opensim_install/lib/python3.6/site-packages/
 
+####move this to it's own thing, it is interposed here
+#https://coin-or.github.io/Ipopt/INSTALL.html
+#these guys recommend that I get a compatible blas, so maybe this can use cublas
+#ENV IPOPTDIR=/Ipopt
+#RUN 	git clone https://github.com/coin-or/Ipopt.git $IPOPTDIR 
+
+#RUN 	git clone https://github.com/coin-or-tools/ThirdParty-HSL.git && \
+#	cd ThirdParty-HSL && \
+#	./configure && \
+#	make && make install
+	
+#WORKDIR $IPOPTDIR/build
+# i don't want to deal with java right now and neither with hsl. hsl seems simple enough, but I'd rather avoid it, until i really need it
+#RUN 	$IPOPTDIR/configure --disable-java --disable-linear-solver-loader && \
+#	make && make install
+	#&& make test && make install
+#####################################################
+
+WORKDIR /opensim_build
 RUN	make -j12
 #	ctest -j8 && \
 #	cd /root/opensim_install/lib/python3.6/site-packages/
