@@ -1,74 +1,113 @@
 FROM ubuntu:18.04
+
+#print(" \\\n\t".join(sorted(set(a.replace("\\","").replace("\n","").split()[1:])))) ## remove the [1:] part if you copied it properly. this is to remove the install bit!
+
 RUN 	apt-get update && \
-	apt-get install git software-properties-common build-essential wget curl net-tools zlib1g-dev \
-	libssl-dev libcurl4-openssl-dev \
-	--yes 
-#RUN     wget http://www.cmake.org/files/v3.2/cmake-3.2.2.tar.gz && \
-	#tar xf cmake-3.2.2.tar.gz && \
-#	cd cmake-3.2.2 && \
-#	./configure && \
-#	make && \
-#	make install
-	#apt-add-repository ppa:george-edison55/cmake-3.x && \ ##this is broken
-#RUN git clone -b v3.5.2 https://cmake.org/cmake.git cmake && \
-RUN git clone -b v3.5.2 https://gitlab.kitware.com/cmake/cmake.git cmake && \
+	apt-get install --yes \ 
+	autoconf \
+	build-essential \
+	clang-3.6 \
+	cmake-curses-gui \
+	curl \
+	freeglut3-dev \
+	gfortran \
+	git \
+	libatlas-base-dev \
+	libcurl4-openssl-dev \
+	liblapack-dev \
+	liblapacke-dev \
+	libmetis-dev \
+	libpcre3 \
+	libpcre3-dev \
+	libssl-dev \
+	libtool \
+	libxi-dev \
+	libxmu-dev \
+	net-tools \
+	openjdk-8-jdk \
+	patch \
+	pkg-config \
+	python3-dev \
+	python3-numpy \
+	software-properties-common \
+	wget \
+	zlib1g-dev 
+
+ENV JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
+
+ENV CMAKE_VERSION=3.6.0
+RUN 	git clone -b v$CMAKE_VERSION https://gitlab.kitware.com/cmake/cmake.git cmake && \
 	cd cmake && \
 	./bootstrap --system-curl && \
 	make && \
 	make install
 
-
-
-RUN	apt install libpcre3 libpcre3-dev --yes && \
-	wget http://ufpr.dl.sourceforge.net/project/swig/swig/swig-3.0.12/swig-3.0.12.tar.gz && \
-	tar xzf swig-3.0.12.tar.gz && \
-	cd swig-3.0.12/ && \
-	./configure --prefix=$HOME/swig && \
-	make clean && make && make install && \
-	export SWIG_PATH=$HOME/swig/bin/swig 
-	# export is not the correct way, we need to make sure this works properly before trying to compile opensim
-
-	#apt-add-repository ppa:fenics-packages/fenics-exp && \ ## also broken
-	#apt-get update && \
-	## there is also no jdk 7 anymore, i might need to compile it from source as well, but that I will try to avoid. java *should* be backwards compatible
-RUN	apt-get install --yes \
-		clang-3.6 \
-		# cmake \
-		cmake-curses-gui \
-		freeglut3-dev \
-		git	\
-		liblapack-dev \
-		libxi-dev \
-		libxmu-dev \
-		openjdk-8-jdk \ 
-		python-dev \
-		libatlas-base-dev  liblapacke-dev gfortran autoconf libtool patch wget pkg-config liblapack-dev libmetis-dev
-#
-		#swig3.0 \
 RUN 	rm -f /usr/bin/cc /usr/bin/c++ && \
 	ln -s /usr/bin/clang-3.6 /usr/bin/cc && \
 	ln -s /usr/bin/clang++-3.6 /usr/bin/c++
 
-ENV SWIG_PATH=$HOME/swig/bin/swig 
-ENV JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
-RUN 	git clone https://github.com/opensim-org/opensim-core.git
+ENV OPENSIM_INSTALL_DIR=/root/opensim_install
+#ENV OPENSIM_REPO=https://github.com/mitkof6/opensim-core.git
+ENV OPENSIM_REPO=https://github.com/opensim-org/opensim-core.git
+#ENV OPENSIM_BRANCH=bindings_timestepper
+ENV OPENSIM_BRANCH=master
+RUN 	git clone -b $OPENSIM_BRANCH $OPENSIM_REPO
 WORKDIR	opensim_dependencies_build
 RUN	cmake ../opensim-core/dependencies/ \
       		-DCMAKE_INSTALL_PREFIX='~/opensim_dependencies_install' \
       		-DCMAKE_BUILD_TYPE=RelWithDebInfo && \ 
-	make -j12
-RUN apt-get install python3-numpy python3-dev --yes
+	make -j12 
+
 WORKDIR /opensim_build
 
-#RUN 	mkdir opensim_build && \
-#	cd opensim_build && \
-#	cmake ../opensim-core \
-#	      -DCMAKE_INSTALL_PREFIX="~/opensim_install" \
-#	      -DCMAKE_BUILD_TYPE=RelWithDebInfo \
-#	      -DOPENSIM_DEPENDENCIES_DIR="~/opensim_dependencies_install" \
-#	      -DBUILD_PYTHON_WRAPPING=ON \
-#	      -DBUILD_JAVA_WRAPPING=ON \
-#	      -DWITH_BTK=ON && \
-#	make -j8 && \
+ENV SWIG_VERSION=4.0.2
+RUN	wget http://ufpr.dl.sourceforge.net/project/swig/swig/swig-$SWIG_VERSION/swig-$SWIG_VERSION.tar.gz && \
+	tar xzf swig-$SWIG_VERSION.tar.gz && \
+	cd swig-$SWIG_VERSION/ && \
+	./configure --prefix=$HOME/swig && \
+	make clean && make && make install
+ENV SWIG_PATH=$HOME/swig/bin/swig
+
+ENV PATH=$PATH:/root/swig/bin/
+ENV SWIG_DIR=/root/swig/bin
+ENV SWIG_EXECUTABLE=/root/swig/bin/swig
+#ENV DESTDIR=$OPENSIM_INSTALL_DIR #idk about this.
+
+RUN 	cmake ../opensim-core \
+	      -DCMAKE_INSTALL_PREFIX=$OPENSIM_INSTALL_DIR \
+	      -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+	      -DOPENSIM_DEPENDENCIES_DIR="~/opensim_dependencies_install" \
+	      -DBUILD_PYTHON_WRAPPING=ON \
+	      -DOPENSIM_PYTHON_VERSION=3 \
+	      -DBUILD_JAVA_WRAPPING=OFF \
+	      -DWITH_BTK=ON \
+	      -DOPENSIM_WITH_TROPTER=OFF
+	      #no java?
+
+#RUN apt-get install libjpeg62-turbo tzdata-java initscripts libsctp1
+
+ENV PYTHONPATH=/root/opensim_install/lib/python3.6/site-packages/
+
+####move this to it's own thing, it is interposed here
+#https://coin-or.github.io/Ipopt/INSTALL.html
+#these guys recommend that I get a compatible blas, so maybe this can use cublas
+#ENV IPOPTDIR=/Ipopt
+#RUN 	git clone https://github.com/coin-or/Ipopt.git $IPOPTDIR 
+
+#RUN 	git clone https://github.com/coin-or-tools/ThirdParty-HSL.git && \
+#	cd ThirdParty-HSL && \
+#	./configure && \
+#	make && make install
+	
+#WORKDIR $IPOPTDIR/build
+# i don't want to deal with java right now and neither with hsl. hsl seems simple enough, but I'd rather avoid it, until i really need it
+#RUN 	$IPOPTDIR/configure --disable-java --disable-linear-solver-loader && \
+#	make && make install
+	#&& make test && make install
+#####################################################
+
+WORKDIR /opensim_build
+RUN	make -j12
 #	ctest -j8 && \
-#	make -j8 install 
+#	cd /root/opensim_install/lib/python3.6/site-packages/
+RUN 	make -j8 install 
