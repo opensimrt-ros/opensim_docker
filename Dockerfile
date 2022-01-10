@@ -1,6 +1,6 @@
 FROM ubuntu:18.04
 
-#Remove to trigger new build action
+##Remove to trigger new build action
 
 #print(" \\\n\t".join(sorted(set(a.replace("\\","").replace("\n","").split()[1:])))) ## remove the [1:] part if you copied it properly. this is to remove the install bit!
 
