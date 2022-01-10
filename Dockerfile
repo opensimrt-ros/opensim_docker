@@ -1,7 +1,5 @@
 FROM ubuntu:18.04
 
-#print(" \\\n\t".join(sorted(set(a.replace("\\","").replace("\n","").split()[1:])))) ## remove the [1:] part if you copied it properly. this is to remove the install bit!
-
 RUN 	apt-get update && \
 	apt-get install --yes \ 
 	autoconf \
@@ -23,13 +21,12 @@ RUN 	apt-get update && \
 	libtool \
 	libxi-dev \
 	libxmu-dev \
-	net-tools \
-	openjdk-8-jdk \
+	net-tools \	
 	patch \
 	pkg-config \
 	python3-dev \
 	python3-numpy \
-	software-properties-common \
+	python3-setuptools \
 	wget \
 	zlib1g-dev 
 
@@ -71,7 +68,6 @@ ENV SWIG_PATH=$HOME/swig/bin/swig
 ENV PATH=$PATH:/root/swig/bin/
 ENV SWIG_DIR=/root/swig/bin
 ENV SWIG_EXECUTABLE=/root/swig/bin/swig
-#ENV DESTDIR=$OPENSIM_INSTALL_DIR #idk about this.
 
 RUN 	cmake ../opensim-core \
 	      -DCMAKE_INSTALL_PREFIX=$OPENSIM_INSTALL_DIR \
@@ -82,32 +78,14 @@ RUN 	cmake ../opensim-core \
 	      -DBUILD_JAVA_WRAPPING=OFF \
 	      -DWITH_BTK=ON \
 	      -DOPENSIM_WITH_TROPTER=OFF
-	      #no java?
-
-#RUN apt-get install libjpeg62-turbo tzdata-java initscripts libsctp1
 
 ENV PYTHONPATH=/root/opensim_install/lib/python3.6/site-packages/
-
-####move this to it's own thing, it is interposed here
-#https://coin-or.github.io/Ipopt/INSTALL.html
-#these guys recommend that I get a compatible blas, so maybe this can use cublas
-#ENV IPOPTDIR=/Ipopt
-#RUN 	git clone https://github.com/coin-or/Ipopt.git $IPOPTDIR 
-
-#RUN 	git clone https://github.com/coin-or-tools/ThirdParty-HSL.git && \
-#	cd ThirdParty-HSL && \
-#	./configure && \
-#	make && make install
-	
-#WORKDIR $IPOPTDIR/build
-# i don't want to deal with java right now and neither with hsl. hsl seems simple enough, but I'd rather avoid it, until i really need it
-#RUN 	$IPOPTDIR/configure --disable-java --disable-linear-solver-loader && \
-#	make && make install
-	#&& make test && make install
-#####################################################
+ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/root/opensim_install/lib/
 
 WORKDIR /opensim_build
 RUN	make -j12
-#	ctest -j8 && \
-#	cd /root/opensim_install/lib/python3.6/site-packages/
-RUN 	make -j8 install 
+RUN 	make -j12 install && \
+	cd /root/opensim_install/lib/python3.6/site-packages/ && \
+	python3 setup.py install
+
+
