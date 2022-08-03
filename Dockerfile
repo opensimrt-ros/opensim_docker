@@ -37,7 +37,7 @@ RUN 	apt-get update && \
 
 ENV JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
 
-ENV CMAKE_VERSION=3.6.0
+ENV CMAKE_VERSION=3.15.0
 RUN 	git clone -b v$CMAKE_VERSION https://gitlab.kitware.com/cmake/cmake.git cmake && \
 	cd cmake && \
 	./bootstrap --system-curl && \
@@ -75,20 +75,11 @@ ENV SWIG_DIR=/root/swig/bin
 ENV SWIG_EXECUTABLE=/root/swig/bin/swig
 #ENV DESTDIR=$OPENSIM_INSTALL_DIR #idk about this.
 
-RUN 	cmake ../opensim-core \
-	      -DCMAKE_INSTALL_PREFIX=$OPENSIM_INSTALL_DIR \
-	      -DCMAKE_BUILD_TYPE=RelWithDebInfo \
-	      -DOPENSIM_DEPENDENCIES_DIR="~/opensim_dependencies_install" \
-	      -DBUILD_PYTHON_WRAPPING=ON \
-	      -DOPENSIM_PYTHON_VERSION=3 \
-	      -DBUILD_JAVA_WRAPPING=OFF \
-	      -DWITH_BTK=ON \
-	      -DOPENSIM_WITH_TROPTER=OFF
-	      #no java?
+#get casadi? will this work?
+#RUN wget https://github.com/casadi/casadi/releases/download/3.5.5/casadi-linux-py36-v3.5.5-64bit.tar.gz && \
+#	tar -xvf casadi-linux-py36-v3.5.5-64bit.tar.gz
 
-#RUN apt-get install libjpeg62-turbo tzdata-java initscripts libsctp1
-
-ENV PYTHONPATH=/root/opensim_install/lib/python3.6/site-packages/
+#ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opensim_build/casadi
 
 ####move this to it's own thing, it is interposed here
 #https://coin-or.github.io/Ipopt/INSTALL.html
@@ -107,6 +98,29 @@ ENV PYTHONPATH=/root/opensim_install/lib/python3.6/site-packages/
 #	make && make install
 	#&& make test && make install
 #####################################################
+RUN apt-get install coinor-libipopt-dev gcc g++ gfortran git cmake liblapack-dev pkg-config --install-recommends -y
+RUN git clone https://github.com/casadi/casadi.git -b master casadi
+WORKDIR casadi/build 
+RUN cmake -DWITH_PYTHON=ON .. && make && make install
+
+##I need casadi, so 
+
+WORKDIR /opensim_build
+RUN 	cmake ../opensim-core \
+	      -DCMAKE_INSTALL_PREFIX=$OPENSIM_INSTALL_DIR \
+	      -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+	      -DOPENSIM_DEPENDENCIES_DIR="~/opensim_dependencies_install" \
+	      -DBUILD_PYTHON_WRAPPING=ON \
+	      -DOPENSIM_PYTHON_VERSION=3 \
+	      -DBUILD_JAVA_WRAPPING=OFF \
+	      -DWITH_BTK=ON \
+	      -DOPENSIM_WITH_TROPTER=OFF #\
+	      #-Dcasadi_DIR=/opensim_build/casadi/cmake
+	      #no java?
+
+#RUN apt-get install libjpeg62-turbo tzdata-java initscripts libsctp1
+
+ENV PYTHONPATH=/root/opensim_install/lib/python3.6/site-packages/
 
 WORKDIR /opensim_build
 RUN	make -j12
