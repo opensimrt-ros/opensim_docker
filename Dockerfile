@@ -1,4 +1,4 @@
-FROM ubuntu:18.04
+FROM ros:noetic-ros-base
 
 ##Remove to trigger new build action
 
@@ -84,21 +84,33 @@ ENV SWIG_EXECUTABLE=/root/swig/bin/swig
 ####move this to it's own thing, it is interposed here
 #https://coin-or.github.io/Ipopt/INSTALL.html
 #these guys recommend that I get a compatible blas, so maybe this can use cublas
-#ENV IPOPTDIR=/Ipopt
-#RUN 	git clone https://github.com/coin-or/Ipopt.git $IPOPTDIR 
+ENV IPOPTDIR=/Ipopt
+RUN 	git clone https://github.com/coin-or/Ipopt.git $IPOPTDIR 
 
-#RUN 	git clone https://github.com/coin-or-tools/ThirdParty-HSL.git && \
-#	cd ThirdParty-HSL && \
-#	./configure && \
-#	make && make install
-	
-#WORKDIR $IPOPTDIR/build
+WORKDIR $IPOPTDIR
+RUN 	git clone https://github.com/coin-or-tools/ThirdParty-HSL.git
+WORKDIR $IPOPTDIR/ThirdParty-HSL 
+ENV COIN_ARCH=coinhsl-archive-2021.05.05
+RUN apt-get install gcc g++ gfortran git cmake liblapack-dev pkg-config --install-recommends -y
+ADD ./$COIN_ARCH.tar.gz $IPOPTDIR/ThirdParty-HSL  
+#RUN tar -xvf $COIN_ARCH.tar.gz && 
+RUN ln -s $COIN_ARCH coinhsl
+WORKDIR $IPOPTDIR/ThirdParty-HSL/$COIN_ARCH
+RUN bash && ./configure && \
+	make && make install
+WORKDIR $IPOPTDIR/ThirdParty-HSL/
+RUN bash && ./configure && \
+	make && make install
+
+
+
+WORKDIR $IPOPTDIR/build
 # i don't want to deal with java right now and neither with hsl. hsl seems simple enough, but I'd rather avoid it, until i really need it
-#RUN 	$IPOPTDIR/configure --disable-java --disable-linear-solver-loader && \
-#	make && make install
-	#&& make test && make install
+RUN bash $IPOPTDIR/configure --disable-java --disable-linear-solver-loader && \
+	make test && make install
+	#make && make install
 #####################################################
-RUN apt-get install coinor-libipopt-dev gcc g++ gfortran git cmake liblapack-dev pkg-config --install-recommends -y
+#RUN apt-get install coinor-libipopt-dev gcc g++ gfortran git cmake liblapack-dev pkg-config --install-recommends -y
 RUN git clone https://github.com/casadi/casadi.git -b master casadi
 WORKDIR casadi/build 
 RUN cmake -DWITH_PYTHON=ON .. && make && make install
@@ -115,10 +127,10 @@ RUN 	cmake ../opensim-core \
 	      -DBUILD_JAVA_WRAPPING=OFF \
 	      -DWITH_BTK=ON \
 	      -DOPENSIM_WITH_TROPTER=OFF #\
-	      #-Dcasadi_DIR=/opensim_build/casadi/cmake
+      #-Dcasadi_DIR=/opensim_build/casadi/cmake
 	      #no java?
 
-#RUN apt-get install libjpeg62-turbo tzdata-java initscripts libsctp1
+RUN apt-get install libjpeg62-turbo tzdata-java initscripts libsctp1
 
 ENV PYTHONPATH=/root/opensim_install/lib/python3.6/site-packages/
 
