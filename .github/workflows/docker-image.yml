@@ -38,8 +38,8 @@ jobs:
         with:
           context: .
           file: dependencies.Dockerfile
-          push: false
-          tags: user/app.dependencies:latest
+          push: true 
+          tags: mysablehats/opensim.dependencies:latest
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache-new
       - name: Move cache
@@ -50,8 +50,8 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           context: .
-          push: false
-          tags: user/app:latest
+          push: true 
+          tags: mysablehats/opensim:latest
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache-new
       - name: Move cache
