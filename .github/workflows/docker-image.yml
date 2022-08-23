@@ -36,7 +36,7 @@ jobs:
       - name: Build and push dependencies
         uses: docker/build-push-action@v2
         with:
-          context: -f dependencies.Dockerfile .
+          context: --file="dependencies.Dockerfile" .
           push: false
           tags: user/app.dependencies:latest
           cache-from: type=local,src=/tmp/.buildx-cache
