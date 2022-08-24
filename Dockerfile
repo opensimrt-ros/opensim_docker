@@ -13,12 +13,19 @@ RUN 	cmake ../opensim-core \
       #-Dcasadi_DIR=/opensim_build/casadi/cmake
 	      #no java?
 
-RUN apt-get install libjpeg62-turbo tzdata-java initscripts libsctp1
+#RUN apt-get install libjpeg62-turbo tzdata-java initscripts libsctp1
 
 ENV PYTHONPATH=/root/opensim_install/lib/python3.6/site-packages/
 
 WORKDIR /opensim_build
-RUN	make -j12
+
+RUN	make osimCommon -j`nproc`
+RUN	make osimSimulation -j`nproc`
+RUN	make osimActuators -j`nproc`
+RUN	make osimTools -j`nproc`
+RUN	make osimAnalyses -j`nproc`
+RUN	make osimMoco -j`nproc`
+RUN	make osimLepton -j`nproc`
+RUN	make -j`nproc`
 #	ctest -j8 && \
-#	cd /root/opensim_install/lib/python3.6/site-packages/
-RUN 	make -j8 install 
+RUN 	make -j`nproc` install 
