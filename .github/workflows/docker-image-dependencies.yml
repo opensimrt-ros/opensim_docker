@@ -33,12 +33,13 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_ACCESSTOKEN }}
       # And make it available for the builds
-      - name: Build and push
+      - name: Build and push dependencies
         uses: docker/build-push-action@v2
         with:
           context: .
+          file: dependencies.Dockerfile
           push: true 
-          tags: mysablehats/opensim:latest
+          tags: mysablehats/opensim.dependencies:latest
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache-new
       - name: Move cache
