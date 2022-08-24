@@ -19,13 +19,13 @@ ENV PYTHONPATH=/root/opensim_install/lib/python3.6/site-packages/
 
 WORKDIR /opensim_build
 
-RUN	make osimCommon -j`nproc`
-RUN	make osimSimulation -j`nproc`
-RUN	make osimActuators -j`nproc`
-RUN	make osimTools -j`nproc`
-RUN	make osimAnalyses -j`nproc`
-RUN	make osimMoco -j`nproc`
-RUN	make osimLepton -j`nproc`
-RUN	make -j`nproc`
+RUN	make osimCommon -j`nproc`\
+	make osimSimulation -j`nproc`\
+	make osimActuators -j`nproc`\
+	make osimTools -j`nproc`\
+	make osimAnalyses -j`nproc`\
+	make osimMoco -j`nproc`\
+	make osimLepton -j`nproc`\
+	make -j`nproc`
 #	ctest -j8 && \
 RUN 	make -j`nproc` install 
