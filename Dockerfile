@@ -83,12 +83,6 @@ ENV SWIG_DIR=/usr/local/bin
 ENV SWIG_EXECUTABLE=/usr/local/bin/swig
 #ENV DESTDIR=$OPENSIM_INSTALL_DIR #idk about this.
 
-#get casadi? will this work?
-#RUN wget https://github.com/casadi/casadi/releases/download/3.5.5/casadi-linux-py36-v3.5.5-64bit.tar.gz && \
-#	tar -xvf casadi-linux-py36-v3.5.5-64bit.tar.gz
-
-#ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opensim_build/casadi
-
 ####move this to it's own thing, it is interposed here
 #https://coin-or.github.io/Ipopt/INSTALL.html
 #these guys recommend that I get a compatible blas, so maybe this can use cublas
@@ -110,7 +104,6 @@ RUN bash && ./configure && \
 	make && make install
 
 
-
 WORKDIR $IPOPTDIR/build
 # i don't want to deal with java right now and neither with hsl. hsl seems simple enough, but I'd rather avoid it, until i really need it
 RUN bash $IPOPTDIR/configure --disable-java --disable-linear-solver-loader && \
@@ -124,7 +117,7 @@ RUN git clone https://github.com/casadi/casadi.git -b main casadi
 WORKDIR /opt/casadi/
 RUN cmake -DWITH_PYTHON=ON /usr/src/casadi && make && make install
 
-FROM dependencies as stage2
+FROM dependencies AS stage2
 
 WORKDIR /opt/opensim-core
 RUN 	cmake /usr/src/opensim-core \
@@ -135,14 +128,13 @@ RUN 	cmake /usr/src/opensim-core \
 	      -DOPENSIM_PYTHON_VERSION=3 \
 	      -DBUILD_JAVA_WRAPPING=OFF \
 	      -DWITH_BTK=ON \
-	      -DOPENSIM_WITH_TROPTER=OFF #\
-      #-Dcasadi_DIR=/opensim_build/casadi/cmake
+	      -DOPENSIM_WITH_TROPTER=OFF
+#-Dcasadi_DIR=/opensim_build/casadi/cmake
 	      #no java?
 
-#RUN apt-get install libjpeg62-turbo tzdata-java initscripts libsctp1
+FROM stage2 AS stage3
 
 ENV PYTHONPATH=/usr/local/lib/python3.6/site-packages/
-
 RUN	make osimCommon -j`nproc` &&\
 	make osimSimulation -j`nproc` &&\
 	make osimActuators -j`nproc` &&\
