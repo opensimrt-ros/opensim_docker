@@ -113,6 +113,11 @@ RUN bash $IPOPTDIR/configure --disable-java --disable-linear-solver-loader && \
 #RUN apt-get install coinor-libipopt-dev gcc g++ gfortran git cmake liblapack-dev pkg-config --install-recommends -y
 ##I need casadi, so 
 WORKDIR /usr/src
+
+##so casadi is big and my network is complaining when downloading this. trying this dirty fix. If something else fails to fetch you can try putting this on the top of the dockerfile
+RUN git config --global http.postBuffer 1048576000 && \
+	git config --global http.lowSpeedLimit 0 && \
+	git config --global http.lowSpeedTime 999999 
 RUN git clone https://github.com/casadi/casadi.git -b main casadi && cd casadi && git checkout 81bbcd37d9aa69e53cae7164e5c5c06c5f8529ee
 WORKDIR /opt/casadi/
 RUN cmake -DWITH_PYTHON=ON /usr/src/casadi && make && make install
