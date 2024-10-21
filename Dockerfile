@@ -60,7 +60,7 @@ ENV OPENSIM_INSTALL_DIR=/usr/local
 ENV OPENSIM_REPO=https://github.com/opensim-org/opensim-core.git
 #ENV OPENSIM_BRANCH=bindings_timestepper
 ENV OPENSIM_BRANCH=main
-RUN 	git clone -b $OPENSIM_BRANCH $OPENSIM_REPO
+RUN 	git clone -b $OPENSIM_BRANCH $OPENSIM_REPO && cd opensim-core && git checkout 292147cee958a21a6af7d4c684c4e6645d3022ee && cd ..
 RUN	cmake /usr/src/opensim-core/dependencies/ \
       		-DCMAKE_INSTALL_PREFIX='/opt/dependencies' \
       		-DCMAKE_BUILD_TYPE=RelWithDebInfo && \ 
@@ -87,10 +87,10 @@ ENV SWIG_EXECUTABLE=/usr/local/bin/swig
 #https://coin-or.github.io/Ipopt/INSTALL.html
 #these guys recommend that I get a compatible blas, so maybe this can use cublas
 ENV IPOPTDIR=/usr/src/Ipopt
-RUN 	git clone https://github.com/coin-or/Ipopt.git $IPOPTDIR 
+RUN 	git clone https://github.com/coin-or/Ipopt.git $IPOPTDIR && cd $IPOPTDIR && git checkout e10e5c738605f0525a50cbdaa624d56378986c77 
 
 WORKDIR $IPOPTDIR
-RUN 	git clone https://github.com/coin-or-tools/ThirdParty-HSL.git
+RUN 	git clone https://github.com/coin-or-tools/ThirdParty-HSL.git && cd ThirdParty-HSL && git checkout 4f8da755c38411738745d1fbe9866a67836ad8ae && cd ..
 WORKDIR $IPOPTDIR/ThirdParty-HSL 
 ENV COIN_ARCH=coinhsl-archive-2021.05.05
 ADD ./$COIN_ARCH.tar.gz $IPOPTDIR/ThirdParty-HSL  
@@ -113,7 +113,7 @@ RUN bash $IPOPTDIR/configure --disable-java --disable-linear-solver-loader && \
 #RUN apt-get install coinor-libipopt-dev gcc g++ gfortran git cmake liblapack-dev pkg-config --install-recommends -y
 ##I need casadi, so 
 WORKDIR /usr/src
-RUN git clone https://github.com/casadi/casadi.git -b main casadi
+RUN git clone https://github.com/casadi/casadi.git -b main casadi && cd casadi && git checkout 81bbcd37d9aa69e53cae7164e5c5c06c5f8529ee
 WORKDIR /opt/casadi/
 RUN cmake -DWITH_PYTHON=ON /usr/src/casadi && make && make install
 
