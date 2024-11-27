@@ -2,7 +2,7 @@
 #
 USERNAME=rosopensimrt
 BUILD_STAGES=true
-
+ARCH=$(uname -m)
 BRANCH_RAW=$(git branch --show-current )
 
 ## sanitize branch name
@@ -31,71 +31,63 @@ fi
 
 if [ "$(uname)" == "Darwin" ]; then
 	# Do something under Mac OS X platform
-	# I can only run in x86_64 systems, so I should also warn the person.
-	if [ "$(uname -m)" != "x86_64" ]; then
-		echo "The only currently supported architecture is x86_64. You need to change the Dockerfile to compile everything with this architecture ($(uname -m))."
-		exit
-	fi
-	docker build . -f Dockerfile -t ${USERNAME}/osrt-full:$BRANCH $@
+		# I can only run in x86_64 systems, so I should also warn the person.
+		docker build . -f Dockerfile -t ${USERNAME}/osrt-full-$ARCH:$BRANCH $@
 
-elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
-	# Do something under GNU/Linux platform
-	# I can only run in x86_64 systems, so I should also warn the person.
-	if [ "$(uname -m)" != "x86_64" ]; then
-		echo "The only currently supported architecture is x86_64. You need to change the Dockerfile to compile everything with this architecture ($(uname -m))."
-		exit
-	fi
-	
-	options=$(getopt -o lc --longoptions username:,build_in_one_go -- "$@")
-	[ $? -eq 0 ] || { 
-	    echo "Incorrect options provided"
-	    exit 1
-	}
-	eval set -- "$options"
-	while true; do
-	    case "$1" in
-	    -l)
-		## tag as latest
-		BRANCH=latest
-		;;
-	    --username)
-		shift; # The arg is next in position args
-		USERNAME=${1:rosopensimrt}
-		;;
-	    --build_in_one_go)
-		BUILD_STAGES=false
-		;;
-	    --)
-		shift
-		## after this there will be the options for docker build. the second one
-		break
-		;;
-	    esac
-	    shift
-	done
-	#printf "$USER_ID_THAT_WAS_USED_TO_BUILD_THIS_DOCKER" 
-	#exit 0;
+	elif [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]; then
+		# Do something under GNU/Linux platform
+		# I can only run in x86_64 systems, so I should also warn the person.
+		
+		options=$(getopt -o lc --longoptions username:,build_in_one_go -- "$@")
+		[ $? -eq 0 ] || { 
+		    echo "Incorrect options provided"
+		    exit 1
+		}
+		eval set -- "$options"
+		while true; do
+		    case "$1" in
+		    -l)
+			## tag as latest
+			BRANCH=latest
+			;;
+		    --username)
+			shift; # The arg is next in position args
+			USERNAME=${1:rosopensimrt}
+			;;
+		    --build_in_one_go)
+			BUILD_STAGES=false
+			;;
+		    --)
+			shift
+			## after this there will be the options for docker build. the second one
+			break
+			;;
+		    esac
+		    shift
+		done
+		#printf "$USER_ID_THAT_WAS_USED_TO_BUILD_THIS_DOCKER" 
+		#exit 0;
 
-	COMMON_OPTIONS="--progress=tty \
-			--network=host \
-			$@
-	"
+		COMMON_OPTIONS="--progress=tty \
+				--network=host \
+				$@
+		"
 
-		echo "USING COMPLETE BUILD"
-		if [ "$BUILD_STAGES" = true ]; then
-			echo "Building opensim docker by stage"
-			DOCKER_BUILDKIT=1 docker build . -f Dockerfile --target=dependencies -t ${USERNAME}/osrt-1:$BRANCH $COMMON_OPTIONS
-			DOCKER_BUILDKIT=1 docker build . -f Dockerfile --target=stage2 -t ${USERNAME}/osrt-2:$BRANCH $COMMON_OPTIONS
-			DOCKER_BUILDKIT=1 docker build . -f Dockerfile --target=stage3 -t ${USERNAME}/osrt-3:$BRANCH $COMMON_OPTIONS
-		fi
-			DOCKER_BUILDKIT=1 docker build . -f Dockerfile -t ${USERNAME}/osrt-full:$BRANCH $COMMON_OPTIONS
+			echo "USING COMPLETE BUILD"
+			if [ "$BUILD_STAGES" = true ]; then
+				echo "Building opensim docker by stage"
+				DOCKER_BUILDKIT=1 docker build . -f Dockerfile --target=dependencies -t ${USERNAME}/osrt-1-$ARCH:$BRANCH $COMMON_OPTIONS
+				DOCKER_BUILDKIT=1 docker build . -f Dockerfile --target=stage2 -t ${USERNAME}/osrt-2-$ARCH:$BRANCH $COMMON_OPTIONS
+				DOCKER_BUILDKIT=1 docker build . -f Dockerfile --target=stage3 -t ${USERNAME}/osrt-3-$ARCH:$BRANCH $COMMON_OPTIONS
+			fi
+				DOCKER_BUILDKIT=1 docker build . -f Dockerfile -t ${USERNAME}/osrt-full-$ARCH:$BRANCH $COMMON_OPTIONS
 
-elif [ "$(expr substr $(uname -s) 1 10)" == "MINGW32_NT" ]; then
-	# Do something under 32 bits Windows NT platform
-	docker build . -f Dockerfile -t ${USERNAME}/osrt-full:$BRANCH $@
+	elif [ "$(expr substr $(uname -s) 1 10)" == "MINGW32_NT" ]; then
+		# Do something under 32 bits Windows NT platform
+		docker build . -f Dockerfile -t ${USERNAME}/osrt-full-$ARCH:$BRANCH $@
 
-elif [ "$(expr substr $(uname -s) 1 10)" == "MINGW64_NT" ]; then
-	# Do something under 64 bits Windows NT platform
-	docker build . -f Dockerfile -t ${USERNAME}/osrt-full:$BRANCH $@
+	elif [ "$(expr substr $(uname -s) 1 10)" == "MINGW64_NT" ]; then
+		# Do something under 64 bits Windows NT platform
+	docker build . -f Dockerfile -t ${USERNAME}/osrt-full-$ARCH:$BRANCH $@
 
 fi
