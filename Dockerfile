@@ -1,6 +1,7 @@
+ARG USE_N_CORES
 FROM ros:noetic-ros-base AS dependencies
-
 ##Remove to trigger new build action
+ARG USE_N_CORES
 
 #print(" \\\n\t".join(sorted(set(a.replace("\\","").replace("\n","").split()[1:])))) ## remove the [1:] part if you copied it properly. this is to remove the install bit!
 
@@ -60,11 +61,11 @@ ENV OPENSIM_INSTALL_DIR=/usr/local
 ENV OPENSIM_REPO=https://github.com/opensim-org/opensim-core.git
 #ENV OPENSIM_BRANCH=bindings_timestepper
 ENV OPENSIM_BRANCH=main
-RUN 	git clone -b $OPENSIM_BRANCH $OPENSIM_REPO && cd opensim-core && git checkout 292147cee958a21a6af7d4c684c4e6645d3022ee && cd ..
+RUN 	git clone -b $OPENSIM_BRANCH $OPENSIM_REPO --shallow-since=2022 && cd opensim-core && git checkout 292147cee958a21a6af7d4c684c4e6645d3022ee && cd ..
 RUN	cmake /usr/src/opensim-core/dependencies/ \
       		-DCMAKE_INSTALL_PREFIX='/opt/dependencies' \
       		-DCMAKE_BUILD_TYPE=RelWithDebInfo && \ 
-	make -j12 
+	make -j$USE_N_CORES 
 
 ENV SWIG_VERSION=4.1.1
 RUN wget https://github.com/swig/swig/archive/refs/tags/v${SWIG_VERSION}.tar.gz && \
@@ -124,6 +125,7 @@ RUN cmake -DWITH_PYTHON=ON /usr/src/casadi && make && make install
 
 FROM dependencies AS stage2
 
+ARG USE_N_CORES
 WORKDIR /opt/opensim-core
 RUN 	cmake /usr/src/opensim-core \
 	      -DCMAKE_INSTALL_PREFIX=$OPENSIM_INSTALL_DIR \
@@ -139,18 +141,19 @@ RUN 	cmake /usr/src/opensim-core \
 
 FROM stage2 AS stage3
 
+ARG USE_N_CORES
 ENV PYTHONPATH=/usr/local/lib/python3.6/site-packages/
-RUN	make osimCommon -j`nproc` &&\
-	make osimSimulation -j`nproc` &&\
-	make osimActuators -j`nproc` &&\
-	make osimTools -j`nproc` &&\
-	make osimAnalyses -j`nproc` &&\
-	make osimMoco -j`nproc` &&\
-	make osimLepton -j`nproc`
+RUN	make osimCommon -j$USE_N_CORES &&\
+	make osimSimulation -j$USE_N_CORES &&\
+	make osimActuators -j$USE_N_CORES &&\
+	make osimTools -j$USE_N_CORES &&\
+	make osimAnalyses -j$USE_N_CORES &&\
+	make osimMoco -j$USE_N_CORES &&\
+	make osimLepton -j$USE_N_CORES
 
-RUN	make -j`nproc`
+	RUN	make -j2
 #	ctest -j8 && \
-RUN 	make -j`nproc` install 
+RUN 	make -j$USE_N_CORES install 
 
 
 
