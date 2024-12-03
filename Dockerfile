@@ -52,8 +52,8 @@ RUN 	git clone -b v$CMAKE_VERSION https://gitlab.kitware.com/cmake/cmake.git cma
 	make install
 
 RUN 	rm -f /usr/bin/cc /usr/bin/c++ && \
-	ln -s /usr/bin/clang-3.6 /usr/bin/cc && \
-	ln -s /usr/bin/clang++-3.6 /usr/bin/c++
+	ln -s /usr/bin/clang /usr/bin/cc && \
+	ln -s /usr/bin/clang++ /usr/bin/c++
 
 WORKDIR /usr/src
 ENV OPENSIM_INSTALL_DIR=/usr/local
